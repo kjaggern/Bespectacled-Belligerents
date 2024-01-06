@@ -1,0 +1,10 @@
+import serial
+import time
+
+arduino_data = serial.Serial('COM3', 115200, timeout = 0.05)  # establish serial communication link
+
+def get_arduino_data(loop_duration):
+    reference_time = time.time()
+    while time.time() - reference_time < loop_duration:
+        if arduino_data.readline()[:-2] != '':
+            sensor_data = arduino_data.readline()[:-2]
