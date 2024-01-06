@@ -32,6 +32,10 @@ return_text = font.render('No Liquid Sampled', True, black, white)
 return_textframe = return_text.get_rect()
 return_textframe.center = (SCREEN_W // 2, SCREEN_H // 2 + SCREEN_H/4)
 
+collect_text = font.render('Collecting Data...', True, black, white)
+collect_textframe = collect_text.get_rect()
+collect_textframe.center = (SCREEN_W // 2, SCREEN_H // 2)
+
 not_pressed = 1
 
 while True:
@@ -57,6 +61,7 @@ while True:
     screen.fill(white)
     if not (not_pressed):
         button_text = font.render('Classify Liquid', True, black, yellow)
+        screen.blit(collect_text, collect_textframe)
     screen.blit(return_text, return_textframe)
     screen.blit(button_text, button_textframe)
     pygame.display.update()
