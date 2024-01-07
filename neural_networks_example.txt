@@ -1,0 +1,116 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Imports data
+from tensorflow.keras.datasets import mnist
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+
+# One hot encodes the target y
+from tensorflow.keras.utils import to_categorical
+y_train_encoded = to_categorical(y_train)
+y_test_encoded = to_categorical(y_test)
+
+# Imports and definies the 10-fold cross-validation that will be used later
+from sklearn.model_selection import StratifiedKFold
+skf = StratifiedKFold(n_splits=5, shuffle=True)
+
+# Defines the parameters that will be explored
+num_filters = [16,32]
+learning_rates = [0.001, 0.01]
+
+# Defines a function to build a model to test different parameters
+from tensorflow import keras
+from tensorflow.keras import layers, models
+def build_model(filters, learning_rate):
+    model = models.Sequential()
+    model.add(layers.Conv2D(filters=filters, kernel_size=(3, 3), activation='relu', input_shape=(28, 28, 1)))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(10, activation='softmax'))
+
+    opt = keras.optimizers.Adam(learning_rate = learning_rate)
+    model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+# Defines the Keras model classifier with fit that can be changed later on
+from sklearn.base import BaseEstimator, TransformerMixin
+class KerasClassifier(BaseEstimator, TransformerMixin):
+    def __init__(self, model_func, **kwargs):
+        self.model_func = model_func
+        self.kwargs = kwargs
+        self.model_ = None
+
+    def fit(self, X, y):
+        self.model_ = self.model_func(**self.kwargs)
+        self.model_.fit(X, y, epochs=10, batch_size=32, verbose=0)
+        return self
+
+    def predict(self, X):
+      # The argmax here converts the one-hot encoding to label format
+        return np.argmax(self.model_.predict(X), axis=1)
+		
+# Defines best F1 score and also cycles for see progress (total 4 cycles)
+from sklearn.metrics import f1_score
+best_f1 = 0
+cycle = 0
+
+# Using mean imputation to replace all missing values
+from sklearn.pipeline import Pipeline
+
+# Goes through each combination of the parameters
+for filters in num_filters:
+  for learning_rate in learning_rates:
+    f1_scores = []
+
+    # Using the 10-fold cross-validation defined earlier, split the data accordingly
+    for train_index, val_index in skf.split(X_train, y_train):
+      X_train_Kfoldtrain, X_train_Kfoldval = X_train[train_index], X_train[val_index]
+      y_train_Kfoldtrain, y_train_Kfoldval = y_train_encoded[train_index], y_train_encoded[val_index]
+
+      # Builds the pipeline and train it for each one of the 5-folded dataset
+      pipeline = Pipeline([
+        ('classifier', KerasClassifier(build_model, filters = filters, learning_rate = learning_rate))
+      ])
+      pipeline.fit(X_train_Kfoldtrain, y_train_Kfoldtrain)
+
+      # Predicts and compares the result with the true value using F1 Scores
+      y_pred = pipeline.predict(X_train_Kfoldval)
+      y_train_true = np.argmax(y_train_Kfoldval, axis=1)
+      f1 = f1_score(y_train_true, y_pred,average='micro')
+
+      # Adds the current fold F1 Score to the list of F1 scores for a combination of parameters
+      f1_scores.append(f1)
+
+    # Compares the average of the F1 scores for a certain combination of parameters
+    # and stores the best F1 Score along with its parameters.
+    current_f1 = sum(f1_scores)/5
+    if current_f1 > best_f1:
+      best_f1 = current_f1
+      best_num_filters = filters
+      best_learning_rate = learning_rate
+
+    # Counts the ongoing cycles and displays it
+    cycle += 1
+    print('CYCLE:', cycle, 'out of 4.')
+
+# Builds the best model based off of the best parameters found
+pipeline = Pipeline([
+  ('classifier', KerasClassifier(build_model, filters = best_num_filters, learning_rate = best_learning_rate))
+])
+pipeline.fit(X_train, y_train_encoded)
+
+# Predicts and compares the result to the actual test set using F1 Score
+y_pred = pipeline.predict(X_test)
+test_f1_score = f1_score(y_test.ravel(), y_pred, average='macro')
+
+from sklearn.metrics import accuracy_score
+accuracy = accuracy_score(y_test.ravel(), y_pred)
+
+# Displays final results
+print('The final F1 Score for the test dataset is:', test_f1_score)
+print('The final accuracy for the test dataset is:', accuracy)
+print('The best parameters are:')
+print('Number of filters:', best_num_filters)
+print('Learning rate:', best_learning_rate)
