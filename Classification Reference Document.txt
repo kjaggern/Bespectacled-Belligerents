@@ -3,9 +3,7 @@
 [2] = 'filter water'
 [3] = 'pepsi'
 [4] = 'vinegar'
-[5] = 'tap water'
 [6] = 'gingerale'
 [7] = 'red bull'
 [8] = 'milk'
 [9] = 'diet pepsi'
-
