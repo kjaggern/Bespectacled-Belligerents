@@ -7,5 +7,5 @@
 [6] = 'gingerale'
 [7] = 'red bull'
 [8] = 'milk'
-[9] = 'diet coke'
+[9] = 'diet pepsi'
 
