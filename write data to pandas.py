@@ -1,7 +1,9 @@
 from openpyxl import load_workbook
+from color_recog import color_bgr
+import numpy as np
 
-data1 = ['class', 'conduct', 'ph', 'rgb']
-data2 = [0, 3, 2, 4]
+data1 = ['b','g','r']
+data2 = color_bgr().tolist()
 
 wb = load_workbook("book2.xlsx")
 ws = wb.worksheets[0]
