@@ -1,6 +1,6 @@
 [0] = 'coca cola'
 [1] = 'orange juice'
-[2] = 'bottled water'
+[2] = 'filter water'
 [3] = 'pepsi'
 [4] = 'vinegar'
 [5] = 'tap water'
