@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-def color_recog():
+def color_bgr():
     cap = cv2.VideoCapture(0)
 
     counter = 0
@@ -18,12 +18,12 @@ def color_recog():
         sample = frame[center_y - sample_size // 2:center_y + sample_size // 2, center_x - sample_size // 2:center_x + sample_size // 2]
 
         # Display the frame with the region of interest
-        cv2.imshow('Original', frame)
-        cv2.imshow('Sample', sample)
+        # cv2.imshow('Original', frame)
+        # cv2.imshow('Sample', sample)
 
         # Calculate the average color of the region in BGR and HSV
         avg_color = np.mean(sample, axis=(0, 1))
-        avg_color_hsv = cv2.cvtColor(np.uint8([[avg_color]]), cv2.COLOR_BGR2HSV)[0][0]
+        # avg_color_hsv = cv2.cvtColor(np.uint8([[avg_color]]), cv2.COLOR_BGR2HSV)[0][0]
 
         if counter > 30:
             total_avg = total_avg + avg_color
@@ -42,7 +42,3 @@ def color_recog():
     cv2.destroyAllWindows()
 
     return total_avg/30
-
-# Testing
-x = color_recog()
-print(x)
